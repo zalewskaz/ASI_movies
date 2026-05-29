@@ -15,14 +15,6 @@ DB_CONFIG = {
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-DB_CONFIG = {
-    "dbname": "movie_db",
-    "user": "dev_user",
-    "password": "dev_pass",
-    "host": "localhost",
-    "port": "5432"
-}
-
 def get_db_connection():
     try:
         conn = psycopg2.connect(**DB_CONFIG)
@@ -59,11 +51,13 @@ def run_pipeline():
             logging.warning(f"Pomijam {title} - nie udało się pobrać szczegółów.")
             continue
 
-        year = wm_details.get("year")
-        user_rating = wm_details.get("user_rating")
-        critic_score = wm_details.get("critic_score")
-        runtime = wm_details.get("runtime_minutes")
-        
+        year = wm_details.get("year") if wm_details.get("year") is not None else 0
+        user_rating = wm_details.get("user_rating") if wm_details.get("user_rating") is not None else 0.0
+        critic_score = wm_details.get("critic_score") if wm_details.get("critic_score") is not None else 0.0
+        runtime = wm_details.get("runtime_minutes") if wm_details.get("runtime_minutes") is not None else 0   
+
+        poster_path = movie.get("poster_path") if movie.get("poster_path") is not None else "placeholder.jpg"
+
         insert_movie_query = """
             INSERT INTO movies (tmdb_id, title, year, poster_path, user_rating, critic_score, runtime)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -75,21 +69,32 @@ def run_pipeline():
         
         sources = wm_details.get("sources", [])
         if sources:
-            streaming_records = []
+            cheapest_sources = {}
+            
             for source in sources:
                 service_name = source.get("name")
                 region = source.get("region")
-                price = source.get("price")
-                streaming_records.append((tmdb_id, service_name, region, price))
+                
+                price = source.get("price") if source.get("price") is not None else 0.0
+                
+                key = (service_name, region)
+                
+                if key not in cheapest_sources or price < cheapest_sources[key]:
+                    cheapest_sources[key] = price
+            
+            streaming_records = [
+                (tmdb_id, service, reg, prc) 
+                for (service, reg), prc in cheapest_sources.items()
+            ]
             
             cursor.execute("DELETE FROM streaming WHERE tmdb_id = %s;", (tmdb_id,))
             
             insert_streaming_query = """
                 INSERT INTO streaming (tmdb_id, service_name, region, price)
                 VALUES %s
+                ON CONFLICT (tmdb_id, service_name, region, price) DO NOTHING;
             """
             execute_values(cursor, insert_streaming_query, streaming_records)
-            
     conn.commit()
     cursor.close()
     conn.close()
