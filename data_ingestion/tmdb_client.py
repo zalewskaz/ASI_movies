@@ -1,5 +1,6 @@
 import requests
 import time
+import math
 from config import TMDB_API_KEY
 
 BASE_URL = "https://api.themoviedb.org/3"
@@ -9,7 +10,7 @@ def get_popular_movies(limit=10):
     all_movies = []
     
     movies_per_page = 20
-    pages_to_fetch = limit // movies_per_page
+    pages_to_fetch = math.ceil(limit / movies_per_page)
     
     for page in range(1, pages_to_fetch + 1):
         params = {
