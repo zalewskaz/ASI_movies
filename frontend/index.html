@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASI Movies - Architektura</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <h1>ASI Movies Pipeline</h1>
+        <nav>
+            <button class="tab-btn active" onclick="switchTab('movies-tab')">Lista Filmów</button>
+            <button class="tab-btn" onclick="switchTab('stats-tab')">Statystyki</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="movies-tab" class="tab-content active">
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="region-filter">Region:</label>
+                    <select id="region-filter">
+                        <option value="">Wszystkie (Świat)</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Platformy (wybierz wiele):</label>
+                    <div id="platform-checkboxes" class="checkbox-list">
+                    </div>
+                </div>
+            </div>
+
+            <div id="movies-grid" class="movies-grid">
+                <p>Ładowanie filmów...</p>
+            </div>
+        </section>
+
+        <section id="stats-tab" class="tab-content">
+            <h2>Statystyki platform</h2>
+            <p>TODO: wykresy z danymi z drugiego endpointu.</p>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -28,21 +28,20 @@ def get_db_connection():
     return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
 
 
-# Główny endpoint: pobiera wszystkie filmy lub filtruje je na bieżąco
 @app.get("/api/movies")
 def get_movies(
     region: str = Query(None),
-    platform: str = Query(None)
+    platform: list[str] = Query(None) 
 ):
+    logging.info(f"Zapytanie GET /api/movies | Filtry -> region: {region}, platform: {platform}")
+    
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Jeśli użytkownik nie wybrał filtrów, pobieramy po prostu wszystkie filmy
         if not region and not platform:
             cursor.execute("SELECT tmdb_id, title, year, poster_path, user_rating, critic_score, runtime FROM movies ORDER BY user_rating DESC;")
         else:
-            # Jeśli filtry są włączone, łączymy tabele (JOIN)
             query = """
                 SELECT DISTINCT m.tmdb_id, m.title, m.year, m.poster_path, m.user_rating, m.critic_score, m.runtime 
                 FROM movies m
@@ -53,22 +52,27 @@ def get_movies(
             if region:
                 query += " AND UPPER(s.region) = UPPER(%s)"
                 params.append(region)
+            
             if platform:
-                query += " AND UPPER(s.service_name) = UPPER(%s)"
-                params.append(platform)
+                placeholders = ', '.join(['%s'] * len(platform))
+                query += f" AND UPPER(s.service_name) IN ({placeholders})"
+                
+                params.extend([p.upper() for p in platform])
                 
             query += " ORDER BY m.user_rating DESC;"
             cursor.execute(query, tuple(params))
             
         movies = cursor.fetchall()
+        logging.info(f"Pomyślnie pobrano {len(movies)} filmów z bazy danych.")
+        
         cursor.close()
         conn.close()
         return movies
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
+        logging.error(f"Błąd bazy danych w GET /api/movies: {str(e)}")
+        raise HTTPException(status_code=500, detail="Wystąpił wewnętrzny błąd bazy danych.")
 
 
-# Pobiera unikalne platformy streamingowe do listy rozwijanej
 @app.get("/api/filters/platforms")
 def get_unique_platforms():
     try:
@@ -85,7 +89,6 @@ def get_unique_platforms():
         raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
 
 
-# Pobiera unikalne regiony do listy rozwijanej
 @app.get("/api/filters/regions")
 def get_unique_regions():
     try:
@@ -101,7 +104,6 @@ def get_unique_regions():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
 
-# Dane do wykresu słupkowego 
 @app.get("/api/stats/platforms-charts")
 def get_platform_chart_data():
     try:
