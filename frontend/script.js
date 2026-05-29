@@ -20,7 +20,6 @@ function switchTab(tabId) {
     if (tabId === 'stats-tab') {
         loadMovieCountChart();
         loadRatingsChart();
-        loadPriceChart();
         loadStatsRegionFilter();
     }
 }
