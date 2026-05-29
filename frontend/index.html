@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASI Movies - Architektura</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -23,12 +24,12 @@
                 <div class="filter-group">
                     <label for="region-filter">Region:</label>
                     <select id="region-filter">
-                        <option value="">Wszystkie (Świat)</option>
+                        <option value="">Wszystkie</option>
                     </select>
                 </div>
 
                 <div class="filter-group">
-                    <label>Platformy (wybierz wiele):</label>
+                    <label>Platformy:</label>
                     <div id="platform-checkboxes" class="checkbox-list">
                     </div>
                 </div>
@@ -39,9 +40,26 @@
             </div>
         </section>
 
-        <section id="stats-tab" class="tab-content">
-            <h2>Statystyki platform</h2>
-            <p>TODO: wykresy z danymi z drugiego endpointu.</p>
+        <section id="stats-tab" class="tab-content">            
+            <h3 style="text-align: center; color: #555; margin-top: 40px;">Liczba filmów według platformy</h3>
+            <div class="chart-container">
+                <canvas id="movieCountChart"></canvas>
+            </div>
+
+            <h3 style="text-align: center; color: #555; margin-top: 40px;">Porównanie średnich ocen użytkowników i krytyków</h3>
+            <div class="chart-container">
+                <canvas id="ratingsChart"></canvas>
+            </div>
+
+            <h3 style="text-align: center; color: #555; margin-top: 40px;">Średnia cena subskrypcji</h3>
+            <div style="text-align: center;">
+                <select id="stats-region-filter" onchange="loadPriceChart()">
+                    <option value="">Wszystkie regiony</option>
+                    </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
         </section>
     </main>
 

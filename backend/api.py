@@ -157,25 +157,20 @@ def get_critic_ratings():
     return data
 
 @app.get("/api/stats/prices")
-def get_prices(region: str = Query(None)):
+def get_prices(region: str = Query(...)): 
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
         query = """
-            SELECT service_name, AVG(price) as average_price
+            SELECT service_name, ROUND(AVG(price)::numeric, 2) as average_price
             FROM streaming
-            WHERE price > 0
+            WHERE price > 0 AND UPPER(region) = UPPER(%s)
+            GROUP BY service_name 
+            ORDER BY average_price ASC;
         """
-        params = []
-        
-        if region:
-            query += " AND UPPER(region) = UPPER(%s)"
-            params.append(region)
-            
-        query += " GROUP BY service_name ORDER BY average_price ASC;"
-        
-        cursor.execute(query, tuple(params))
+
+        cursor.execute(query, (region,))
         data = cursor.fetchall()
         cursor.close()
         conn.close()

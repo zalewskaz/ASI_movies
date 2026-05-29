@@ -131,3 +131,24 @@ select {
 .checkbox-list input[type="checkbox"] {
     cursor: pointer;
 }
+.chart-container {
+    width: 80%;
+    max-width: 800px;
+    margin: 40px auto; 
+    height: 400px;    
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); 
+    border: 1px solid #eee;
+}
+
+#stats-region-filter {
+    display: block;
+    margin: 20px auto;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    cursor: pointer;
+}
