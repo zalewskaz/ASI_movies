@@ -124,45 +124,58 @@ def get_platform_chart_data():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
 
-@app.get("/api/stats/ratings")
-def get_ratings():
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            SELECT 
-                s.service_name, 
-                AVG(m.user_rating) FILTER (WHERE m.user_rating > 0) as user_rating, 
-                AVG(m.critic_score) FILTER (WHERE m.critic_score > 0) as critic_score
-            FROM streaming s
-            JOIN movies m ON s.tmdb_id = m.tmdb_id
-            GROUP BY s.service_name
-            HAVING AVG(m.user_rating) > 0 OR AVG(m.critic_score) > 0
-            ORDER BY user_rating DESC;
-        """)
-        
-        data = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
+@app.get("/api/stats/ratings/users")
+def get_user_ratings():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT s.service_name, AVG(m.user_rating) as avg_rating 
+        FROM streaming s
+        JOIN movies m ON s.tmdb_id = m.tmdb_id
+        WHERE m.user_rating > 0
+        GROUP BY s.service_name
+    """)
+    data = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return data
+
+@app.get("/api/stats/ratings/critics")
+def get_critic_ratings():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT s.service_name, AVG(m.critic_score) as avg_rating 
+        FROM streaming s
+        JOIN movies m ON s.tmdb_id = m.tmdb_id
+        WHERE m.critic_score > 0
+        GROUP BY s.service_name
+    """)
+    data = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return data
 
 @app.get("/api/stats/prices")
-def get_prices():
+def get_prices(region: str = Query(None)):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        query = """
             SELECT service_name, AVG(price) as average_price
             FROM streaming
             WHERE price > 0
-            GROUP BY service_name
-            ORDER BY average_price ASC;
-        """)
+        """
+        params = []
         
+        if region:
+            query += " AND UPPER(region) = UPPER(%s)"
+            params.append(region)
+            
+        query += " GROUP BY service_name ORDER BY average_price ASC;"
+        
+        cursor.execute(query, tuple(params))
         data = cursor.fetchall()
         cursor.close()
         conn.close()
