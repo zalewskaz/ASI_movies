@@ -2,10 +2,25 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_USER: dev_user
-      POSTGRES_PASSWORD: dev_pass
-      POSTGRES_DB: movie_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  data_ingestion_service:
+    build:
+      context: .
+      dockerfile: data_ingestion/Dockerfile
+    environment:
+      - TMDB_API_KEY=${TMDB_API_KEY}
+      - WATCHMODE_API_KEY=${WATCHMODE_API_KEY}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=db  
+      - DB_PORT=${DB_PORT}
+    depends_on:
+      - db

@@ -3,6 +3,15 @@ import psycopg2
 from psycopg2.extras import execute_values
 from data_ingestion.tmdb_client import get_popular_movies
 from data_ingestion.watchmode_scraper import get_watchmode_id_from_tmdb, fetch_watchmode_title_details
+from config import DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT
+
+DB_CONFIG = {
+    "dbname": DB_NAME,
+    "user": DB_USER,
+    "password": DB_PASS,
+    "host": DB_HOST,
+    "port": DB_PORT
+}
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
