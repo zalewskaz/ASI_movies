@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from config import DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT
+import logging
 
 app = FastAPI(title="ASI Movies API", version="1.0")
 

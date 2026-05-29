@@ -91,8 +91,7 @@ def run_pipeline():
             
             insert_streaming_query = """
                 INSERT INTO streaming (tmdb_id, service_name, region, price)
-                VALUES %s
-                ON CONFLICT (tmdb_id, service_name, region, price) DO NOTHING;
+                VALUES %s;
             """
             execute_values(cursor, insert_streaming_query, streaming_records)
     conn.commit()
