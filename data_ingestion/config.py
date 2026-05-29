@@ -15,6 +15,3 @@ if not TMDB_API_KEY:
 
 if not WATCHMODE_API_KEY:
     raise ValueError("Missing WATCHMODE_API_KEY in .env file.")
-
-print(f"TMDB Key: {TMDB_API_KEY}")
-print(f"Watchmode Key: {WATCHMODE_API_KEY}")
