@@ -40,7 +40,6 @@ def run_pipeline():
         
         logging.info(f"Przetwarzam: {title} (TMDB ID: {tmdb_id})")
         
-        # 1. Pobranie danych z Watchmode
         wm_id = get_watchmode_id_from_tmdb(str(tmdb_id), is_tv_show=False)
         if not wm_id:
             logging.warning(f"Pomijam {title} - brak odpowiednika w Watchmode.")
@@ -53,7 +52,8 @@ def run_pipeline():
 
         year = wm_details.get("year") if wm_details.get("year") is not None else 0
         user_rating = wm_details.get("user_rating") if wm_details.get("user_rating") is not None else 0.0
-        critic_score = wm_details.get("critic_score") if wm_details.get("critic_score") is not None else 0.0
+        raw_critic_score = wm_details.get("critic_score")
+        critic_score = (raw_critic_score / 10.0) if raw_critic_score is not None else 0.0
         runtime = wm_details.get("runtime_minutes") if wm_details.get("runtime_minutes") is not None else 0   
 
         poster_path = movie.get("poster_path") if movie.get("poster_path") is not None else "placeholder.jpg"
