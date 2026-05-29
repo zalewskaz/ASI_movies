@@ -4,7 +4,7 @@ from config import TMDB_API_KEY
 
 BASE_URL = "https://api.themoviedb.org/3"
 
-def get_popular_movies(limit=100):
+def get_popular_movies(limit=10):
     url = f"{BASE_URL}/movie/popular"
     all_movies = []
     
