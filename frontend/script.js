@@ -153,7 +153,6 @@ async function loadMovieCountChart() {
 }
 
 async function loadRatingsChart() {
-    // Pobieramy dane z dwóch nowych źródeł
     const [userRes, criticRes] = await Promise.all([
         fetch(`${API_BASE_URL}/stats/ratings/users`),
         fetch(`${API_BASE_URL}/stats/ratings/critics`)
@@ -183,17 +182,15 @@ async function loadRatingsChart() {
             ]
         },
         options: {
-            plugins: { legend: { display: true } }, // Włączamy legendę, bo mamy 2 serie
+            plugins: { legend: { display: true } }, 
             scales: { y: { beginAtZero: true, max: 10 } }
         }
     });
 }
 
 async function loadPriceChart() {
-    // Pobieramy aktualną wartość z filtra regionów
     const region = document.getElementById('stats-region-filter').value;
     
-    // Budujemy URL z parametrem regionu
     let url = `${API_BASE_URL}/stats/prices`;
     if (region) {
         url += `?region=${encodeURIComponent(region)}`;
@@ -203,7 +200,6 @@ async function loadPriceChart() {
     const data = await response.json();
     const ctx = document.getElementById('priceChart').getContext('2d');
 
-    // Niszczymy stary wykres, aby nie nakładał się na nowy
     if (chartInstances.prices) {
         chartInstances.prices.destroy();
     }
@@ -218,7 +214,6 @@ async function loadPriceChart() {
             }]
         },
         options: {
-            // Wyłączamy legendę poprzez plugins
             plugins: {
                 legend: {
                     display: false

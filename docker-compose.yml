@@ -43,5 +43,15 @@ services:
       db:
         condition: service_healthy
 
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile 
+    container_name: asi_movies-frontend-1
+    ports:
+      - "3000:80" 
+    depends_on:
+      - backend_api
+
 volumes:
   pgdata:
