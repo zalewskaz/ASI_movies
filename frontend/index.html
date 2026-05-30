@@ -7,6 +7,7 @@
     <title>ASI Movies - Architektura</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -20,23 +21,31 @@
 
     <main>
         <section id="movies-tab" class="tab-content active">
-            <div class="filters-container">
-                <div class="filter-group">
-                    <label for="region-filter">Region:</label>
-                    <select id="region-filter">
-                        <option value="">Wszystkie</option>
-                    </select>
-                </div>
+            <div class="content-wrapper">
+                
+                <aside class="filters-sidebar">
+                    <h2>Filtry</h2>
+                    
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <h3>Region</h3>
+                            <select id="region-filter">
+                                <option value="">Wszystkie regiony</option>
+                            </select>
+                        </div>
 
-                <div class="filter-group">
-                    <label>Platformy:</label>
-                    <div id="platform-checkboxes" class="checkbox-list">
+                        <div class="filter-group">
+                            <h3>Platformy</h3>
+                            <div id="platform-checkboxes" class="checkbox-list">
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
+                </aside>
 
-            <div id="movies-grid" class="movies-grid">
-                <p>Ładowanie filmów...</p>
+                <div id="movies-grid" class="movies-grid">
+                    <p>Ładowanie filmów...</p>
+                </div>
+                
             </div>
         </section>
 

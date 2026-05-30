@@ -123,8 +123,10 @@ async function loadMovies() {
                 <div class="movie-info">
                     <h3 class="movie-title">${movie.title} (${movie.year || 'Brak roku'})</h3>
                     <p class="movie-stats">
-                        ⭐ ${movie.user_rating ? movie.user_rating : 'Brak oceny'} | 
-                        ⏱️ ${movie.runtime ? movie.runtime + ' min' : 'Brak czasu'}
+                                <i class="fa-solid fa-star" style="color: #f1c40f;"></i> 
+                                ${movie.user_rating ? movie.user_rating : 'Brak oceny'} | 
+                                <i class="fa-regular fa-clock" style="color: #95a5a6;"></i> 
+                                ${movie.runtime ? movie.runtime + ' min' : 'Brak czasu'}
                     </p>
                 </div>
             `;
