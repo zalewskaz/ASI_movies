@@ -42,12 +42,14 @@ def run_pipeline():
         
         wm_id = get_watchmode_id_from_tmdb(str(tmdb_id), is_tv_show=False)
         if not wm_id:
-            logging.warning(f"Pomijam {title} - brak odpowiednika w Watchmode.")
+            logging.warning(f"Brak odpowiednika w Watchmode. Usuwam film {title} z tabeli movies (jeśli istniał).")
+            cursor.execute("DELETE FROM streaming WHERE tmdb_id = %s;", (tmdb_id,))
+            cursor.execute("DELETE FROM movies WHERE tmdb_id = %s;", (tmdb_id,))
             continue
             
         wm_details = fetch_watchmode_title_details(wm_id)
         if not wm_details:
-            logging.warning(f"Pomijam {title} - nie udało się pobrać szczegółów.")
+            logging.warning(f"Nie udało się pobrać szczegółów dla {title}. Pomijam iterację.")
             continue
 
         year = wm_details.get("year") if wm_details.get("year") is not None else 0
@@ -68,17 +70,16 @@ def run_pipeline():
         cursor.execute(insert_movie_query, (tmdb_id, title, year, poster_path, user_rating, critic_score, runtime))
         
         sources = wm_details.get("sources", [])
+        
         if sources:
             cheapest_sources = {}
             
             for source in sources:
                 service_name = source.get("name")
                 region = source.get("region")
-                
                 price = source.get("price") if source.get("price") is not None else 0.0
                 
                 key = (service_name, region)
-                
                 if key not in cheapest_sources or price < cheapest_sources[key]:
                     cheapest_sources[key] = price
             
@@ -88,16 +89,21 @@ def run_pipeline():
             ]
             
             cursor.execute("DELETE FROM streaming WHERE tmdb_id = %s;", (tmdb_id,))
-            
             insert_streaming_query = """
                 INSERT INTO streaming (tmdb_id, service_name, region, price)
                 VALUES %s;
             """
             execute_values(cursor, insert_streaming_query, streaming_records)
+            
+        else:
+            logging.info(f"Film {title} nie posiada aktywnych platform streamingowych. Usuwam z bazy danych.")
+            cursor.execute("DELETE FROM streaming WHERE tmdb_id = %s;", (tmdb_id,))
+            cursor.execute("DELETE FROM movies WHERE tmdb_id = %s;", (tmdb_id,))
+
     conn.commit()
     cursor.close()
     conn.close()
-    logging.info("Pipeline zakończony sukcesem. Dane zapisane w bazie.")
+    logging.info("Pipeline zakończony sukcesem. Baza danych została w pełni zsynchronizowana.")
 
 if __name__ == "__main__":
     run_pipeline()

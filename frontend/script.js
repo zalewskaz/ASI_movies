@@ -1,14 +1,24 @@
 const API_BASE_URL = 'http://localhost:8000/api';
 
 const regionFilter = document.getElementById('region-filter');
-const platformFilter = document.getElementById('platform-filter');
 const moviesGrid = document.getElementById('movies-grid');
+
+let chartInstances = {
+    movieCount: null,
+    ratings: null,
+    prices: null
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadFilters();
     loadMovies();
 
     regionFilter.addEventListener('change', loadMovies);
+    
+    const statsRegionFilter = document.getElementById('stats-region-filter');
+    if (statsRegionFilter) {
+        statsRegionFilter.addEventListener('change', loadPriceChart);
+    }
 });
 
 function switchTab(tabId) {
@@ -17,6 +27,7 @@ function switchTab(tabId) {
 
     document.getElementById(tabId).classList.add('active');
     event.currentTarget.classList.add('active');
+    
     if (tabId === 'stats-tab') {
         loadMovieCountChart();
         loadRatingsChart();
@@ -40,6 +51,7 @@ async function loadFilters() {
         const platformRes = await fetch(`${API_BASE_URL}/filters/platforms`);
         const platforms = await platformRes.json();
         const checkboxesContainer = document.getElementById('platform-checkboxes');
+        checkboxesContainer.innerHTML = ''; // Czyszczenie przed renderem
 
         platforms.forEach(platform => {
             if (platform) {
@@ -48,13 +60,12 @@ async function loadFilters() {
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.value = platform;
-
-                checkbox.checked = true;
+                checkbox.checked = true; 
 
                 checkbox.addEventListener('change', loadMovies);
 
                 label.appendChild(checkbox);
-                label.appendChild(document.createTextNode(platform));
+                label.appendChild(document.createTextNode(` ${platform}`));
                 checkboxesContainer.appendChild(label);
             }
         });
@@ -74,9 +85,15 @@ async function loadMovies() {
     }
 
     const checkedPlatforms = document.querySelectorAll('#platform-checkboxes input[type="checkbox"]:checked');
-    checkedPlatforms.forEach(checkbox => {
-        params.append('platform', checkbox.value);
-    });
+    
+    if (checkedPlatforms.length > 0) {
+        checkedPlatforms.forEach(checkbox => {
+            params.append('platform', checkbox.value);
+        });
+    } else {
+        moviesGrid.innerHTML = '<p>Brak filmów dla podanych kryteriów.</p>';
+        return;
+    }
 
     if (params.toString()) {
         url += `?${params.toString()}`;
@@ -88,7 +105,7 @@ async function loadMovies() {
 
         moviesGrid.innerHTML = '';
 
-        if (movies.length === 0) {
+        if (!movies || movies.length === 0) {
             moviesGrid.innerHTML = '<p>Brak filmów dla podanych kryteriów.</p>';
             return;
         }
@@ -97,7 +114,7 @@ async function loadMovies() {
             const card = document.createElement('div');
             card.className = 'movie-card';
 
-            const posterUrl = movie.poster_path
+            const posterUrl = movie.poster_path && movie.poster_path !== 'placeholder.jpg'
                 ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
                 : 'placeholder.png';
 
@@ -118,123 +135,119 @@ async function loadMovies() {
         moviesGrid.innerHTML = '<p style="color: red;">Nie udało się połączyć z API.</p>';
     }
 }
-let chartInstances = {
-    movieCount: null,
-    ratings: null,
-    prices: null
-};
 
 async function loadMovieCountChart() {
-    const response = await fetch(`${API_BASE_URL}/stats/platforms-charts`);
-    const data = await response.json();
-    const ctx = document.getElementById('movieCountChart').getContext('2d');
+    try {
+        const response = await fetch(`${API_BASE_URL}/stats/platforms-charts`);
+        const data = await response.json();
+        const ctx = document.getElementById('movieCountChart').getContext('2d');
 
-    if (chartInstances.movieCount) chartInstances.movieCount.destroy();
+        if (chartInstances.movieCount) chartInstances.movieCount.destroy();
 
-    chartInstances.movieCount = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: data.map(item => item.service_name),
-            datasets: [{
-                label: 'Liczba filmów',
-                data: data.map(item => item.movie_count),
-                backgroundColor: '#3498db'
-            }]
-        },
-        options: {
-            plugins: {
-                legend: {
-                    display: false 
-                }
+        chartInstances.movieCount = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(item => item.service_name),
+                datasets: [{
+                    label: 'Liczba filmów',
+                    data: data.map(item => item.movie_count),
+                    backgroundColor: '#3498db'
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } }
             }
-        }
-    });
+        });
+    } catch (e) {
+        console.error("Błąd wykresu liczby filmów:", e);
+    }
 }
 
 async function loadRatingsChart() {
-    const [userRes, criticRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/stats/ratings/users`),
-        fetch(`${API_BASE_URL}/stats/ratings/critics`)
-    ]);
-    
-    const userData = await userRes.json();
-    const criticData = await criticRes.json();
-    
-    const ctx = document.getElementById('ratingsChart').getContext('2d');
-    if (chartInstances.ratings) chartInstances.ratings.destroy();
+    try {
+        const [userRes, criticRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/stats/ratings/users`),
+            fetch(`${API_BASE_URL}/stats/ratings/critics`)
+        ]);
+        
+        const userData = await userRes.json();
+        const criticData = await criticRes.json();
+        
+        const ctx = document.getElementById('ratingsChart').getContext('2d');
+        if (chartInstances.ratings) chartInstances.ratings.destroy();
 
-    chartInstances.ratings = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: userData.map(item => item.service_name),
-            datasets: [
-                {
-                    label: 'Użytkownicy',
-                    data: userData.map(item => item.avg_rating),
-                    backgroundColor: '#3498db'
-                },
-                {
-                    label: 'Krytycy',
-                    data: criticData.map(item => item.avg_rating),
-                    backgroundColor: '#9b59b6'
-                }
-            ]
-        },
-        options: {
-            plugins: { legend: { display: true } }, 
-            scales: { y: { beginAtZero: true, max: 10 } }
-        }
-    });
+        chartInstances.ratings = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: userData.map(item => item.service_name),
+                datasets: [
+                    {
+                        label: 'Użytkownicy',
+                        data: userData.map(item => item.avg_rating),
+                        backgroundColor: '#3498db'
+                    },
+                    {
+                        label: 'Krytycy',
+                        data: criticData.map(item => item.avg_rating),
+                        backgroundColor: '#9b59b6'
+                    }
+                ]
+            },
+            options: {
+                plugins: { legend: { display: true } }, 
+                scales: { y: { beginAtZero: true, max: 10 } }
+            }
+        });
+    } catch (e) {
+        console.error("Błąd wykresu ocen:", e);
+    }
 }
 
 async function loadPriceChart() {
-    const region = document.getElementById('stats-region-filter').value;
-    
-    let url = `${API_BASE_URL}/stats/prices`;
-    if (region) {
-        url += `?region=${encodeURIComponent(region)}`;
-    }
-    
-    const response = await fetch(url);
-    const data = await response.json();
-    const ctx = document.getElementById('priceChart').getContext('2d');
+    const regionFilterEl = document.getElementById('stats-region-filter');
+    if (!regionFilterEl || !regionFilterEl.value) return;
 
-    if (chartInstances.prices) {
-        chartInstances.prices.destroy();
-    }
+    const region = regionFilterEl.value;
+    
+    try {
+        const url = `${API_BASE_URL}/stats/prices?region=${encodeURIComponent(region)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        const ctx = document.getElementById('priceChart').getContext('2d');
 
-    chartInstances.prices = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: data.map(item => item.service_name),
-            datasets: [{
-                data: data.map(item => item.average_price),
-                backgroundColor: '#27ae60'
-            }]
-        },
-        options: {
-            plugins: {
-                legend: {
-                    display: false
-                }
+        if (chartInstances.prices) chartInstances.prices.destroy();
+
+        chartInstances.prices = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(item => item.service_name),
+                datasets: [{
+                    label: 'Średnia cena',
+                    data: data.map(item => item.average_price),
+                    backgroundColor: '#27ae60'
+                }]
             },
-            scales: {
-                y: { 
-                    beginAtZero: true 
-                }
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
             }
-        }
-    });
+        });
+    } catch (e) {
+        console.error("Błąd wykresu cen:", e);
+    }
 }
+
 async function loadStatsRegionFilter() {
     const filter = document.getElementById('stats-region-filter');
+    if (!filter) return;
+
     try {
         const response = await fetch(`${API_BASE_URL}/filters/regions`);
         const regions = await response.json();
         
         filter.innerHTML = ''; 
         
-        regions.forEach((region, index) => {
+        regions.forEach(region => {
             if (region) {
                 const option = document.createElement('option');
                 option.value = region;
@@ -247,6 +260,6 @@ async function loadStatsRegionFilter() {
             loadPriceChart();
         }
     } catch (error) {
-        console.error("Błąd ładowania regionów:", error);
+        console.error("Błąd loading regionów statystyk:", error);
     }
 }

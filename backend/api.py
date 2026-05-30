@@ -36,38 +36,42 @@ def get_movies(
     logging.info(f"Zapytanie GET /api/movies | Filtry -> region: {region}, platform: {platform}")
     
     try:
+        if platform:
+            platform = [p for p in platform if p.strip() != ""]
+            
+        if platform is not None and len(platform) == 0:
+            return []
+
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        if not region and not platform:
-            cursor.execute("SELECT tmdb_id, title, year, poster_path, user_rating, critic_score, runtime FROM movies ORDER BY user_rating DESC;")
-        else:
-            query = """
-                SELECT DISTINCT m.tmdb_id, m.title, m.year, m.poster_path, m.user_rating, m.critic_score, m.runtime 
-                FROM movies m
-                JOIN streaming s ON m.tmdb_id = s.tmdb_id
-                WHERE 1=1
-            """
-            params = []
-            if region:
-                query += " AND UPPER(s.region) = UPPER(%s)"
-                params.append(region)
+        query = """
+            SELECT DISTINCT m.tmdb_id, m.title, m.year, m.poster_path, m.user_rating, m.critic_score, m.runtime 
+            FROM movies m
+            JOIN streaming s ON m.tmdb_id = s.tmdb_id
+            WHERE 1=1
+        """
+        params = []
+        
+        if region:
+            query += " AND UPPER(s.region) = UPPER(%s)"
+            params.append(region)
+        
+        if platform:
+            placeholders = ', '.join(['%s'] * len(platform))
+            query += f" AND s.service_name IN ({placeholders})"
+            params.extend(platform)
             
-            if platform:
-                placeholders = ', '.join(['%s'] * len(platform))
-                query += f" AND UPPER(s.service_name) IN ({placeholders})"
-                
-                params.extend([p.upper() for p in platform])
-                
-            query += " ORDER BY m.user_rating DESC;"
-            cursor.execute(query, tuple(params))
-            
+        query += " ORDER BY m.user_rating DESC;"
+        
+        logging.info(f"Wykonuję czysty SQL: {query} z parametrami {params}")
+        cursor.execute(query, tuple(params))
         movies = cursor.fetchall()
-        logging.info(f"Pomyślnie pobrano {len(movies)} filmów z bazy danych.")
         
         cursor.close()
         conn.close()
         return movies
+        
     except Exception as e:
         logging.error(f"Błąd bazy danych w GET /api/movies: {str(e)}")
         raise HTTPException(status_code=500, detail="Wystąpił wewnętrzny błąd bazy danych.")
