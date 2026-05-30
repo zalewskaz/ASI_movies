@@ -108,8 +108,8 @@ def get_unique_regions():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
 
-@app.get("/api/stats/platforms-charts")
-def get_platform_chart_data():
+@app.get("/api/stats/platform-distibution")
+def get_platform_distribution():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()

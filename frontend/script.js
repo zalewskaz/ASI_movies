@@ -140,7 +140,7 @@ async function loadMovies() {
 
 async function loadMovieCountChart() {
     try {
-        const response = await fetch(`${API_BASE_URL}/stats/platforms-charts`);
+        const response = await fetch(`${API_BASE_URL}/stats/platform-distribution`);
         const data = await response.json();
         const ctx = document.getElementById('movieCountChart').getContext('2d');
 
