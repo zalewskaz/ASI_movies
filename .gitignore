@@ -9,4 +9,7 @@
 raw_data/
 venv/
 
+__pycache__
 data_ingestion/__pycache__
+tests/__pycache__
+backend/__pycache__

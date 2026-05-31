@@ -90,6 +90,7 @@ def get_unique_platforms():
         conn.close()
         return platforms
     except Exception as e:
+        logging.error(f"Błąd bazy danych w GET /api/filters/platforms: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
 
 
@@ -106,9 +107,10 @@ def get_unique_regions():
         conn.close()
         return regions
     except Exception as e:
+        logging.error(f"Błąd bazy danych w GET /api/filters/regions: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
 
-@app.get("/api/stats/platform-distibution")
+@app.get("/api/stats/platform-distribution")
 def get_platform_distribution():
     try:
         conn = get_db_connection()
@@ -126,39 +128,48 @@ def get_platform_distribution():
         conn.close()
         return chart_data
     except Exception as e:
+        logging.error(f"Błąd bazy danych w GET /api/stats/platform-distribution: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
 
 @app.get("/api/stats/ratings/users")
 def get_user_ratings():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT s.service_name, AVG(m.user_rating) as avg_rating 
-        FROM streaming s
-        JOIN movies m ON s.tmdb_id = m.tmdb_id
-        WHERE m.user_rating > 0
-        GROUP BY s.service_name
-    """)
-    data = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return data
+    try: 
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT s.service_name, AVG(m.user_rating) as avg_rating 
+            FROM streaming s
+            JOIN movies m ON s.tmdb_id = m.tmdb_id
+            WHERE m.user_rating > 0
+            GROUP BY s.service_name
+        """)
+        data = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return data
+    except Exception as e:
+        logging.error(f"Błąd bazy danych w GET /api/stats/ratings/users: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
 
 @app.get("/api/stats/ratings/critics")
 def get_critic_ratings():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT s.service_name, AVG(m.critic_score) as avg_rating 
-        FROM streaming s
-        JOIN movies m ON s.tmdb_id = m.tmdb_id
-        WHERE m.critic_score > 0
-        GROUP BY s.service_name
-    """)
-    data = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return data
+    try: 
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT s.service_name, AVG(m.critic_score) as avg_rating 
+            FROM streaming s
+            JOIN movies m ON s.tmdb_id = m.tmdb_id
+            WHERE m.critic_score > 0
+            GROUP BY s.service_name
+        """)
+        data = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return data
+    except Exception as e:
+        logging.error(f"Błąd bazy danych w GET /api/stats/ratings/critics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
 
 @app.get("/api/stats/prices")
 def get_prices(region: str = Query(...)): 
@@ -180,4 +191,5 @@ def get_prices(region: str = Query(...)):
         conn.close()
         return data
     except Exception as e:
+        logging.error(f"Błąd bazy danych w GET /api/stats/prices: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Błąd bazy danych: {str(e)}")
