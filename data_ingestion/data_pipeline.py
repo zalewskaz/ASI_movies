@@ -30,8 +30,8 @@ def run_pipeline():
 
     cursor = conn.cursor()
     
-    logging.info("Pobieram TOP 10 filmów z TMDB...")
-    top_movies = get_popular_movies(limit=10)
+    logging.info("Pobieram TOP 100 filmów z TMDB...")
+    top_movies = get_popular_movies(limit=100)
     
     for movie in top_movies:
         tmdb_id = movie.get("id")
