@@ -1,12 +1,12 @@
 # ASI_movies
 
 ## docker setup instructions
-ODPALANIE DEV ŚRODOWISKA: 
-docker compose up --build -d
-SPRAWDZENIE W PRZEGLĄDARCE: 
-http://localhost:3000
-ZAMYKANIE: 
-docker compose down
+ODPALANIE DEV ŚRODOWISKA:  
+docker compose up --build -d  
+SPRAWDZENIE W PRZEGLĄDARCE:  
+http://localhost:3000  
+ZAMYKANIE:  
+docker compose down  
 
 ODPALANIE TEST SRODOWISKA: 
 docker compose -f docker-compose.test.yml up --build -d
