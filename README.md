@@ -1,7 +1,7 @@
 # ASI_movies
 
 ## opis
-Repozytorium poświęcone projektowi ASI_movies, realizowanego w ramach przedmiotu Architektura Systemów Informatycznych w semestrze letnim 2025/2026 przez zespół w składzie: Hanna Szczerbińska, Zuzanna Zalewska. W ramach projektu powstała aplikacja składająca się z czterech modułów: 
+Repozytorium poświęcone projektowi ASI_movies, realizowanego w ramach przedmiotu Architektura Systemów Informatycznych w semestrze letnim 2025/2026 przez zespół w składzie: [Hanna Szczerbińska](https://github.com/zabolot7/), [Zuzanna Zalewska](https://github.com/zalewskaz/). W ramach projektu powstała aplikacja składająca się z czterech modułów: 
  - moduł data_ingestion ściąga dane z TMDB i Watchmode API i przeprowadza prosty proces ETL w celu umieszczenia danych w bazie danych; jest w nim również zaimplemnetowane automatyczne uruchamianie procesu ETL raz na tydzień, w celu odświeżenia dostępnych w bazie danych; 
  - baza danych PostgreSQL zawierająca informacje pozyskane z Watchmode i TMDB;
  - moduł backend, który za pomocą FastAPI udostępnia dane z bazy
